@@ -28,12 +28,12 @@ public class Player
         //return nextStates.elementAt(random.nextInt(nextStates.size()));
 
         GameState bestState = null;
-        //int bestVal = 0;
         int beta = Integer.MAX_VALUE;
         int alpha = Integer.MIN_VALUE;
         int depth = 2;
+        int maxDepth = 100;
 
-        if ( gameState.getNextPlayer() == Constants.CELL_O ) // Player A i.e. its the other players turn next
+        if ( gameState.getNextPlayer() == Constants.CELL_X ) // Player A i.e. its the other players turn next
         {
             int v = Integer.MIN_VALUE;
             for ( GameState state : nextStates )
@@ -44,17 +44,17 @@ public class Player
                 //        bestVal = tempVal;
                 //        bestState = state;
                 //    }
-                int temp = alphaBeta( state, depth - 1, alpha, beta, gameState.getNextPlayer() );
+                int temp = alphaBeta( state, maxDepth, alpha, beta, gameState.getNextPlayer() );
                 if ( temp > v ) //equiv to Math.max but also gives us the best state
                 {
                     v = temp;
                     bestState = state;
                 }
 
-                alpha = Math.max( alpha, v );
+                //alpha = Math.max( alpha, v );
 
-                if ( beta <= alpha )
-                    break;
+                //if ( beta <= alpha )
+                //    break;
             }
         }
         else //Player B
@@ -62,17 +62,17 @@ public class Player
             int v = Integer.MAX_VALUE;
             for ( GameState state : nextStates )
             {
-                int temp = alphaBeta( state, depth - 1, alpha, beta, gameState.getNextPlayer() );
+                int temp = alphaBeta( state, maxDepth, alpha, beta, gameState.getNextPlayer() );
                 if ( temp < v ) //equiv to Math.min but also gives us the best state
                 {
                     v = temp;
                     bestState = state;
                 }
 
-                alpha = Math.min( alpha, v );
+                //alpha = Math.min( alpha, v );
 
-                if ( beta <= alpha )
-                    break;
+                //if ( beta <= alpha )
+                //    break;
             }
         }
 
@@ -189,22 +189,24 @@ public class Player
         {
             return eval( state, player );
         }
+
         else if ( player == Constants.CELL_X ) //Player A
         {
             v = Integer.MIN_VALUE;
             for ( GameState nextState : nextStates )
             {
-                v = Math.max( v, alphaBeta( nextState, depth - 1, alpha, beta, state.getNextPlayer() ) );
+                v = Math.max( v, alphaBeta( nextState, depth - 1, alpha, beta, Constants.CELL_O ) );
                 alpha = Math.max( alpha, v );
                 if ( beta <= alpha )
                     break; //Beta prune
             }
         }
+        
         else //Player B
         {
             for ( GameState nextState : nextStates )
             {
-                v = Math.min( v, alphaBeta( nextState, depth - 1, alpha, beta, state.getNextPlayer() ) );
+                v = Math.min( v, alphaBeta( nextState, depth - 1, alpha, beta, Constants.CELL_X ) );
                 beta = Math.min( beta, v );
                 if ( beta <= alpha )
                     break; //alpha prune
