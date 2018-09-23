@@ -31,7 +31,7 @@ public class Player
         //int bestVal = 0;
         int beta = Integer.MAX_VALUE;
         int alpha = Integer.MIN_VALUE;
-        int depth = 5;
+        int depth = 2;
 
         if ( gameState.getNextPlayer() == Constants.CELL_O ) // Player A i.e. its the other players turn next
         {
@@ -90,10 +90,26 @@ public class Player
     {
         int num = 0;
 
-        //Check rows
-        for ( int i = 0; i < 4; i++ )
+        if ( state.isEOG() ) //terminal state
         {
-            for ( int j = 0; j < 4; j++ )
+            if ( player == Constants.CELL_X && state.isXWin() )
+            {
+                return Integer.MAX_VALUE;
+            }
+            else if ( player == Constants.CELL_O && state.isOWin() )
+            {
+                return Integer.MAX_VALUE;
+            }
+            else
+            {
+                return Integer.MIN_VALUE; //Regardless of which player the current player lost
+            }
+        }
+
+        //Check rows
+        for ( int i = 0; i < state.BOARD_SIZE; i++ )
+        {
+            for ( int j = 0; j < state.BOARD_SIZE; j++ )
             {
                 if ( state.at( i, j ) == player )
                     num++;
@@ -101,9 +117,9 @@ public class Player
         }
 
         //check cols
-        for ( int j = 0; j < 4; j++ )
+        for ( int j = 0; j < state.BOARD_SIZE; j++ )
         {
-            for ( int i = 0; i < 4; i++ )
+            for ( int i = 0; i < state.BOARD_SIZE; i++ )
             {
                 if ( state.at( i, j ) == player )
                     num++;
@@ -111,14 +127,17 @@ public class Player
         }
 
         //check diags
-        num += ( state.at( 0, 0 ) == player ) ? 1 : 0;
-        num += ( state.at( 1, 1 ) == player ) ? 1 : 0;
-        num += ( state.at( 2, 2 ) == player ) ? 1 : 0;
-        num += ( state.at( 3, 3 ) == player ) ? 1 : 0;
-        num += ( state.at( 3, 0 ) == player ) ? 1 : 0;
-        num += ( state.at( 2, 1 ) == player ) ? 1 : 0;
-        num += ( state.at( 1, 2 ) == player ) ? 1 : 0;
-        num += ( state.at( 0, 3 ) == player ) ? 1 : 0;
+        for ( int i = 0; i < state.BOARD_SIZE; i++ )
+        {
+            if ( state.at( i, i ) == player )
+                num++;
+        }
+
+        for ( int i = 0; i < state.BOARD_SIZE; i++ )
+        {
+            if ( state.at( i, ( state.BOARD_SIZE - 1 ) - i ) == player )
+                num++;
+        }
 
         return num;
     }
