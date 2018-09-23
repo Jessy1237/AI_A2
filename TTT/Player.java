@@ -51,10 +51,10 @@ public class Player
                     bestState = state;
                 }
 
-                //alpha = Math.max( alpha, v );
+                alpha = Math.max( alpha, v );
 
-                //if ( beta <= alpha )
-                //    break;
+                if ( beta <= alpha )
+                    break;
             }
         }
         else //Player B
@@ -69,10 +69,10 @@ public class Player
                     bestState = state;
                 }
 
-                //alpha = Math.min( alpha, v );
+                beta = Math.min( beta, v );
 
-                //if ( beta <= alpha )
-                //    break;
+                if ( beta <= alpha )
+                    break;
             }
         }
 
