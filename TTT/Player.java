@@ -89,9 +89,10 @@ public class Player
      * @param player The current player
      * @return The heuristic value for the given state and player
      */
-    private int eval( GameState state, int player )
+        private int eval( GameState state, int player )
     {
         int numPA = 0;
+        int numPB = 0;
 
         /*if ( state.isEOG() ) //terminal state
         {
@@ -109,95 +110,108 @@ public class Player
             }
         }*/
 
-        int sum = 0;
+        int sumPA = 0;
+        int sumPB = 0;
         //Check rows
         for ( int i = 0; i < GameState.BOARD_SIZE; i++ )
         {
             numPA = 0;
+            numPB = 0;
             // number of spots PA has in this row
             int numRowPA = 1;
+            int numRowPB = 1;
             for ( int j = 0; j < GameState.BOARD_SIZE; j++ )
             {
                 if ( state.at( i, j ) == player )
                 {
-                    //numPA++;
                     numPA += numRowPA * 5;
                     numRowPA++;
+                    numRowPB = 0;
                 }
                 else if ( state.at( i, j ) != Constants.CELL_EMPTY )
                 {
-                    //numPB++;
-                    numPA = 0;
-                    break;
+                    numPB += numRowPB * 5;
+                    numRowPB++;
+                    numRowPA = 0;
                 }
             }
-            sum += numPA;
+            sumPA += numPA;
+            sumPB += numPB;
         }
 
         //check cols
         for ( int j = 0; j < GameState.BOARD_SIZE; j++ )
         {
             numPA = 0;
+            numPB = 0;;
             int numColPA = 1;
+            int numColPB = 1;
             for ( int i = 0; i < GameState.BOARD_SIZE; i++ )
             {
                 if ( state.at( i, j ) == player )
                 {
-                    //numPA++;
                     numPA += numColPA * 5;
                     numColPA++;
+                    numPB = 0;
                 }
                 else if ( state.at( i, j ) != Constants.CELL_EMPTY )
                 {
-                    //numPB++;
+                    numPB += numColPB * 5;
+                    numColPB++;
                     numPA = 0;
-                    break;
                 }
             }
-            sum += numPA;
+            sumPA += numPA;
+            sumPB += numPB;
         }
 
         numPA = 0;
+        numPB = 0;
         int numDiaPAL = 1;
+        int numDiaPBL = 1;
         //check Left-Right diag
         for ( int i = 0; i < GameState.BOARD_SIZE; i++ )
         {
             if ( state.at( i, i ) == player )
             {
-                //numPA++;
                 numPA += numDiaPAL * 5;
                 numDiaPAL++;
+                numPB = 0;
             }
             else if ( state.at( i, i ) != Constants.CELL_EMPTY )
             {
-                //numPB++;
+                numPB += numDiaPBL * 5;
+                numDiaPBL++;
                 numPA = 0;
-                break;
             }
         }
-        sum += numPA;
+        sumPA += numPA;
+        sumPB += numPB;
 
         numPA = 0;
+        numPB = 0;
         int numDiaPAR = 1;
+        int numDiaPBR = 1;
         // check Right-Left diag
         for ( int i = 0; i < GameState.BOARD_SIZE; i++ )
         {
             if ( state.at( i, ( GameState.BOARD_SIZE - 1 ) - i ) == player )
             {
-                //numPA++;
                 numPA += numDiaPAR * 5;
                 numDiaPAR++;
+                numPB = 0;
             }
             else if ( state.at( i, ( GameState.BOARD_SIZE - 1 ) - i ) != Constants.CELL_EMPTY )
             {
-                //numPB++;
+                numPB += numDiaPBR * 5;
+                numDiaPBR++;
                 numPA = 0;
-                break;
             }
         }
-        sum += numPA;
+        sumPA += numPA;
+        sumPB += numPB;
 
-        return sum;
+        return sumPA - sumPB;
     }
 
     @SuppressWarnings( "unused" )
@@ -252,9 +266,9 @@ public class Player
             if ( myPlayer == Constants.CELL_X )
                 opponent = Constants.CELL_O;
 
-            int temp = eval( state, myPlayer ) - eval( state, opponent );
+            //int temp = eval( state, myPlayer ) - eval( state, opponent );
             //System.err.println(temp);
-            return temp;
+            return eval( state, myPlayer );
         }
 
         else if ( player == Constants.CELL_X ) //Player A
