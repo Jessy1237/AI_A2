@@ -93,16 +93,19 @@ public class Player
     {
         int numPA = 0;
 
-
         /*if ( state.isEOG() ) //terminal state
         {
             if ( ( player == Constants.CELL_X && state.isXWin() ) || ( player == Constants.CELL_O && state.isOWin() ) )
             {
-                return Integer.MAX_VALUE;
+                return Integer.MAX_VALUE / 3;
+            }
+            else if ( !state.isOWin() && !state.isXWin() ) //Draw
+            {
+                return 0;
             }
             else
             {
-                return Integer.MIN_VALUE; //Regardless of which player the current player lost
+                return Integer.MIN_VALUE / 3; //Regardless of which player the current player lost
             }
         }*/
 
