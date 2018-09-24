@@ -78,6 +78,13 @@ public class Player
         return bestState;
     }
 
+    /**
+     * Calculates the amount of score the current line is worth for the current player. Negative means this state is in favour of the opponent (Player B)
+     * 
+     * @param numPA number of marks the current player has in this line (Player A)
+     * @param numPB number of marks the opponent has in the line (Player B)
+     * @return a heuristic value for the current line based off the number of marks each player has
+     */
     private int calcScore( int numPA, int numPB )
     {
         int score = 0;
@@ -110,7 +117,7 @@ public class Player
      * 
      * @param state The current state
      * @param player The current player
-     * @return
+     * @return The heuristic value for the given state and player
      */
     private int eval( GameState state, int player )
     {
@@ -162,7 +169,7 @@ public class Player
 
         numPA = 0;
         numPB = 0;
-        //check diags
+        //check Left-Right diag
         for ( int i = 0; i < GameState.BOARD_SIZE; i++ )
         {
             if ( state.at( i, i ) == player )
@@ -173,6 +180,7 @@ public class Player
 
         numPA = 0;
         numPB = 0;
+        // check Right-Left diag
         for ( int i = 0; i < GameState.BOARD_SIZE; i++ )
         {
             if ( state.at( i, ( GameState.BOARD_SIZE - 1 ) - i ) == player )
