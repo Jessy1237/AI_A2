@@ -34,7 +34,7 @@ public class Player
         GameState bestState = null;
         int beta = Integer.MAX_VALUE;
         int alpha = Integer.MIN_VALUE;
-        int maxDepth = 100;
+        int maxDepth = 7;
 
         if ( gameState.getNextPlayer() == Constants.CELL_X ) // Player A i.e. its the other players turn next
         {
@@ -83,40 +83,6 @@ public class Player
     }
 
     /**
-     * Calculates the amount of score the current line is worth for the current player. Negative means this state is in favour of the opponent (Player B)
-     * 
-     * @param numPA number of marks the current player has in this line (Player A)
-     * @param numPB number of marks the opponent has in the line (Player B)
-     * @return a heuristic value for the current line based off the number of marks each player has
-     */
-    private int calcScore( int numPA, int numPB )
-    {
-        int score = 0;
-
-        if ( numPA > 0 && numPB > 0 ) //Do nothing as this line is a draw
-        {
-        }
-        else if ( numPB == 0 ) // Add points as our opponent has no marks in this line
-        {
-            score = 1;
-            for ( int i = 1; i < numPA; i++ )
-            {
-                score *= 10;
-            }
-        }
-        else if ( numPA == 0 )// Subtract points as our opponent has no marks in this line
-        {
-            score = -1;
-            for ( int i = 1; i < numPA; i++ )
-            {
-                score *= 10;
-            }
-        }
-
-        return score;
-    }
-
-    /**
      * A basic evaluation function for TTT
      * 
      * @param state The current state
@@ -126,11 +92,9 @@ public class Player
     private int eval( GameState state, int player )
     {
         int numPA = 0;
-        int numPB = 0;
-        int score = 0;
 
-/*
-        if ( state.isEOG() ) //terminal state
+
+        /*if ( state.isEOG() ) //terminal state
         {
             if ( ( player == Constants.CELL_X && state.isXWin() ) || ( player == Constants.CELL_O && state.isOWin() ) )
             {
@@ -140,15 +104,13 @@ public class Player
             {
                 return Integer.MIN_VALUE; //Regardless of which player the current player lost
             }
-        }
-*/
+        }*/
 
         int sum = 0;
         //Check rows
         for ( int i = 0; i < GameState.BOARD_SIZE; i++ )
         {
             numPA = 0;
-            numPB = 0;
             // number of spots PA has in this row
             int numRowPA = 1;
             for ( int j = 0; j < GameState.BOARD_SIZE; j++ )
@@ -167,14 +129,12 @@ public class Player
                 }
             }
             sum += numPA;
-            score += calcScore( numPA, numPB );
         }
 
         //check cols
         for ( int j = 0; j < GameState.BOARD_SIZE; j++ )
         {
             numPA = 0;
-            numPB = 0;
             int numColPA = 1;
             for ( int i = 0; i < GameState.BOARD_SIZE; i++ )
             {
@@ -192,11 +152,9 @@ public class Player
                 }
             }
             sum += numPA;
-            score += calcScore( numPA, numPB );
         }
 
         numPA = 0;
-        numPB = 0;
         int numDiaPAL = 1;
         //check Left-Right diag
         for ( int i = 0; i < GameState.BOARD_SIZE; i++ )
@@ -217,7 +175,6 @@ public class Player
         sum += numPA;
 
         numPA = 0;
-        numPB = 0;
         int numDiaPAR = 1;
         // check Right-Left diag
         for ( int i = 0; i < GameState.BOARD_SIZE; i++ )
@@ -236,7 +193,6 @@ public class Player
             }
         }
         sum += numPA;
-        //score += calcScore( numPA, numPB );
 
         return sum;
     }
