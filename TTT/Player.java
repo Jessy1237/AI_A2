@@ -2,6 +2,9 @@ import java.util.Vector;
 
 public class Player
 {
+
+    int myPlayer;
+
     /**
      * Performs a move
      *
@@ -13,6 +16,7 @@ public class Player
     {
         Vector<GameState> nextStates = new Vector<GameState>();
         gameState.findPossibleMoves( nextStates );
+        myPlayer = gameState.getNextPlayer();
 
         if ( nextStates.size() == 0 )
         {
@@ -30,7 +34,7 @@ public class Player
         GameState bestState = null;
         int beta = Integer.MAX_VALUE;
         int alpha = Integer.MIN_VALUE;
-        int maxDepth = 4;
+        int maxDepth = 100;
 
         if ( gameState.getNextPlayer() == Constants.CELL_X ) // Player A i.e. its the other players turn next
         {
@@ -43,7 +47,7 @@ public class Player
                 //        bestVal = tempVal;
                 //        bestState = state;
                 //    }
-                int temp = alphaBeta( state, maxDepth, alpha, beta, gameState.getNextPlayer() );
+                int temp = alphaBeta( state, maxDepth, alpha, beta, myPlayer );
                 if ( temp > v ) //equiv to Math.max but also gives us the best state
                 {
                     v = temp;
@@ -61,7 +65,7 @@ public class Player
             int v = Integer.MAX_VALUE;
             for ( GameState state : nextStates )
             {
-                int temp = alphaBeta( state, maxDepth, alpha, beta, gameState.getNextPlayer() );
+                int temp = alphaBeta( state, maxDepth, alpha, beta, myPlayer );
                 if ( temp < v ) //equiv to Math.min but also gives us the best state
                 {
                     v = temp;
@@ -125,6 +129,7 @@ public class Player
         int numPB = 0;
         int score = 0;
 
+/*
         if ( state.isEOG() ) //terminal state
         {
             if ( ( player == Constants.CELL_X && state.isXWin() ) || ( player == Constants.CELL_O && state.isOWin() ) )
@@ -136,19 +141,32 @@ public class Player
                 return Integer.MIN_VALUE; //Regardless of which player the current player lost
             }
         }
+*/
 
+        int sum = 0;
         //Check rows
         for ( int i = 0; i < GameState.BOARD_SIZE; i++ )
         {
             numPA = 0;
             numPB = 0;
+            // number of spots PA has in this row
+            int numRowPA = 1;
             for ( int j = 0; j < GameState.BOARD_SIZE; j++ )
             {
                 if ( state.at( i, j ) == player )
-                    numPA++;
+                {
+                    //numPA++;
+                    numPA += numRowPA * 5;
+                    numRowPA++;
+                }
                 else if ( state.at( i, j ) != Constants.CELL_EMPTY )
-                    numPB++;
+                {
+                    //numPB++;
+                    numPA = 0;
+                    break;
+                }
             }
+            sum += numPA;
             score += calcScore( numPA, numPB );
         }
 
@@ -157,40 +175,70 @@ public class Player
         {
             numPA = 0;
             numPB = 0;
+            int numColPA = 1;
             for ( int i = 0; i < GameState.BOARD_SIZE; i++ )
             {
                 if ( state.at( i, j ) == player )
-                    numPA++;
+                {
+                    //numPA++;
+                    numPA += numColPA * 5;
+                    numColPA++;
+                }
                 else if ( state.at( i, j ) != Constants.CELL_EMPTY )
-                    numPB++;
+                {
+                    //numPB++;
+                    numPA = 0;
+                    break;
+                }
             }
+            sum += numPA;
             score += calcScore( numPA, numPB );
         }
 
         numPA = 0;
         numPB = 0;
+        int numDiaPAL = 1;
         //check Left-Right diag
         for ( int i = 0; i < GameState.BOARD_SIZE; i++ )
         {
             if ( state.at( i, i ) == player )
-                numPA++;
+            {
+                //numPA++;
+                numPA += numDiaPAL * 5;
+                numDiaPAL++;
+            }
             else if ( state.at( i, i ) != Constants.CELL_EMPTY )
-                numPB++;
+            {
+                //numPB++;
+                numPA = 0;
+                break;
+            }
         }
+        sum += numPA;
 
         numPA = 0;
         numPB = 0;
+        int numDiaPAR = 1;
         // check Right-Left diag
         for ( int i = 0; i < GameState.BOARD_SIZE; i++ )
         {
             if ( state.at( i, ( GameState.BOARD_SIZE - 1 ) - i ) == player )
-                numPA++;
+            {
+                //numPA++;
+                numPA += numDiaPAR * 5;
+                numDiaPAR++;
+            }
             else if ( state.at( i, ( GameState.BOARD_SIZE - 1 ) - i ) != Constants.CELL_EMPTY )
-                numPB++;
+            {
+                //numPB++;
+                numPA = 0;
+                break;
+            }
         }
-        score += calcScore( numPA, numPB );
+        sum += numPA;
+        //score += calcScore( numPA, numPB );
 
-        return score;
+        return sum;
     }
 
     @SuppressWarnings( "unused" )
@@ -239,7 +287,15 @@ public class Player
 
         if ( nextStates.size() == 0 || depth == 0 ) //terminal state
         {
-            return eval( state, player );
+            //return eval( state, player );
+
+            int opponent = Constants.CELL_X;
+            if ( myPlayer == Constants.CELL_X )
+                opponent = Constants.CELL_O;
+
+            int temp = eval( state, myPlayer ) - eval( state, opponent );
+            //System.err.println(temp);
+            return temp;
         }
 
         else if ( player == Constants.CELL_X ) //Player A
