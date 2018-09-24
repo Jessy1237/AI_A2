@@ -30,8 +30,7 @@ public class Player
         GameState bestState = null;
         int beta = Integer.MAX_VALUE;
         int alpha = Integer.MIN_VALUE;
-        int depth = 2;
-        int maxDepth = 100;
+        int maxDepth = 4;
 
         if ( gameState.getNextPlayer() == Constants.CELL_X ) // Player A i.e. its the other players turn next
         {
@@ -79,6 +78,33 @@ public class Player
         return bestState;
     }
 
+    private int calcScore( int numPA, int numPB )
+    {
+        int score = 0;
+
+        if ( numPA > 0 && numPB > 0 ) //Do nothing as this line is a draw
+        {
+        }
+        else if ( numPB == 0 ) // Add points as our opponent has no marks in this line
+        {
+            score = 1;
+            for ( int i = 1; i < numPA; i++ )
+            {
+                score *= 10;
+            }
+        }
+        else if ( numPA == 0 )// Subtract points as our opponent has no marks in this line
+        {
+            score = -1;
+            for ( int i = 1; i < numPA; i++ )
+            {
+                score *= 10;
+            }
+        }
+
+        return score;
+    }
+
     /**
      * A basic evaluation function for TTT
      * 
@@ -88,15 +114,13 @@ public class Player
      */
     private int eval( GameState state, int player )
     {
-        int num = 0;
+        int numPA = 0;
+        int numPB = 0;
+        int score = 0;
 
         if ( state.isEOG() ) //terminal state
         {
-            if ( player == Constants.CELL_X && state.isXWin() )
-            {
-                return Integer.MAX_VALUE;
-            }
-            else if ( player == Constants.CELL_O && state.isOWin() )
+            if ( ( player == Constants.CELL_X && state.isXWin() ) || ( player == Constants.CELL_O && state.isOWin() ) )
             {
                 return Integer.MAX_VALUE;
             }
@@ -107,41 +131,61 @@ public class Player
         }
 
         //Check rows
-        for ( int i = 0; i < state.BOARD_SIZE; i++ )
+        for ( int i = 0; i < GameState.BOARD_SIZE; i++ )
         {
-            for ( int j = 0; j < state.BOARD_SIZE; j++ )
+            numPA = 0;
+            numPB = 0;
+            for ( int j = 0; j < GameState.BOARD_SIZE; j++ )
             {
                 if ( state.at( i, j ) == player )
-                    num++;
+                    numPA++;
+                else if ( state.at( i, j ) != Constants.CELL_EMPTY )
+                    numPB++;
             }
+            score += calcScore( numPA, numPB );
         }
 
         //check cols
-        for ( int j = 0; j < state.BOARD_SIZE; j++ )
+        for ( int j = 0; j < GameState.BOARD_SIZE; j++ )
         {
-            for ( int i = 0; i < state.BOARD_SIZE; i++ )
+            numPA = 0;
+            numPB = 0;
+            for ( int i = 0; i < GameState.BOARD_SIZE; i++ )
             {
                 if ( state.at( i, j ) == player )
-                    num++;
+                    numPA++;
+                else if ( state.at( i, j ) != Constants.CELL_EMPTY )
+                    numPB++;
             }
+            score += calcScore( numPA, numPB );
         }
 
+        numPA = 0;
+        numPB = 0;
         //check diags
-        for ( int i = 0; i < state.BOARD_SIZE; i++ )
+        for ( int i = 0; i < GameState.BOARD_SIZE; i++ )
         {
             if ( state.at( i, i ) == player )
-                num++;
+                numPA++;
+            else if ( state.at( i, i ) != Constants.CELL_EMPTY )
+                numPB++;
         }
 
-        for ( int i = 0; i < state.BOARD_SIZE; i++ )
+        numPA = 0;
+        numPB = 0;
+        for ( int i = 0; i < GameState.BOARD_SIZE; i++ )
         {
-            if ( state.at( i, ( state.BOARD_SIZE - 1 ) - i ) == player )
-                num++;
+            if ( state.at( i, ( GameState.BOARD_SIZE - 1 ) - i ) == player )
+                numPA++;
+            else if ( state.at( i, ( GameState.BOARD_SIZE - 1 ) - i ) != Constants.CELL_EMPTY )
+                numPB++;
         }
+        score += calcScore( numPA, numPB );
 
-        return num;
+        return score;
     }
 
+    @SuppressWarnings( "unused" )
     private int miniMax( GameState state, int player )
     {
         Vector<GameState> nextStates = new Vector<GameState>();
@@ -201,7 +245,7 @@ public class Player
                     break; //Beta prune
             }
         }
-        
+
         else //Player B
         {
             for ( GameState nextState : nextStates )
