@@ -82,6 +82,111 @@ public class Player
         return bestState;
     }
 
+    private int[] calc2dDiagonals ( GameState state, int player, int constantDim, int layer )
+    {
+        int[] sums = new int[2];
+        int numDiaPAL = 0;
+        int numDiaPBL = 0;
+        int numDiaPAR = 0;
+        int numDiaPBR = 0;
+        for (int j = 0; j < GameState.BOARD_SIZE; j++)
+        {
+            int temp = getGameState(state, j, j, constantDim, layer);
+            if ( temp == player )
+            {
+                numDiaPAL++;
+                numDiaPBL = Integer.MIN_VALUE;
+            }
+            else if ( temp != Constants.CELL_EMPTY )
+            {
+                numDiaPBL++;
+                numDiaPAL = Integer.MIN_VALUE;
+            }
+
+            temp = getGameState(state, j, (GameState.BOARD_SIZE - 1) - j, constantDim, layer);
+            if (temp == player)
+            {
+                numDiaPAR++;
+                numDiaPBR = Integer.MIN_VALUE;
+            }
+            else if ( temp != Constants.CELL_EMPTY )
+            {
+                numDiaPBR++;
+                numDiaPAR = Integer.MIN_VALUE;
+            }
+        }
+        sums[0] = numDiaPAL + numDiaPAR;
+        sums[1] = numDiaPBL + numDiaPBR;
+        return sums;
+    }
+
+    private int[] calc3dDiagonals ( GameState state, int player )
+    {
+        int d1PA = 0;
+        int d1PB = 0;
+        int d2PA = 0;
+        int d2PB = 0;
+        int d3PA = 0;
+        int d3PB = 0;
+        int d4PA = 0;
+        int d4PB = 0;
+
+        for ( int j = 0; j < GameState.BOARD_SIZE; j++ )
+        {
+            int temp = state.at(j, j, j);
+            if ( temp == player )
+            {
+                d1PA++;
+                d1PB = Integer.MIN_VALUE;
+            }
+            else if ( temp != Constants.CELL_EMPTY )
+            {
+                d1PB++;
+                d1PA = Integer.MIN_VALUE;
+            }
+
+            temp = state.at(j, j, (GameState.BOARD_SIZE - 1) - j);
+            if ( temp == player )
+            {
+                d2PA++;
+                d2PB = Integer.MIN_VALUE;
+            }
+            else if ( temp != Constants.CELL_EMPTY )
+            {
+                d2PB++;
+                d2PA = Integer.MIN_VALUE;
+            }
+
+            temp = state.at(j, (GameState.BOARD_SIZE - 1) - j, j);
+            if ( temp == player )
+            {
+                d3PA++;
+                d3PB = Integer.MIN_VALUE;
+            }
+            else if ( temp != Constants.CELL_EMPTY )
+            {
+                d3PB++;
+                d3PA = Integer.MIN_VALUE;
+            }
+
+            temp = state.at(j, (GameState.BOARD_SIZE - 1) - j, (GameState.BOARD_SIZE - 1) - j);
+            if ( temp == player )
+            {
+                d4PA++;
+                d4PB = Integer.MIN_VALUE;
+            }
+            else if ( temp != Constants.CELL_EMPTY )
+            {
+                d4PB++;
+                d4PA = Integer.MIN_VALUE;
+            }
+        }
+        int[] sums = new int[2];
+        sums[0] = d1PA + d2PA + d3PA + d4PA;
+        sums[1] = d1PB + d2PB + d3PB + d4PB;
+        return sums;
+    }
+
     /**
      * A basic evaluation function for TTT
      * 
@@ -91,20 +196,84 @@ public class Player
      */
     private int eval( GameState state, int player )
     {
-        int numPA = 0;
-        int sum = 0;
+        int sumPA = 0;
+        int sumPB = 0;
         
-        //TODO: Check Rows but can be in different layers
+        //Check rows, columns, and layers for straight lines
+        for( int k = 0; k < GameState.BOARD_SIZE; k++ )
+        {
+            for( int i = 0; i < GameState.BOARD_SIZE; i++ )
+            {
+                int widthA = 0;
+                int widthB = 0;
+                int lengthA = 0;
+                int lengthB = 0;
+                int depthA = 0;
+                int depthB = 0;
+                for( int j = 0; j < GameState.BOARD_SIZE; j++ )
+                {
+                    // width
+                    int temp = state.at(i, j, k);
+                    if ( temp == player )
+                    {
+                        widthA++;
+                        widthB = Integer.MIN_VALUE;
+                    }
+                    else if ( temp != Constants.CELL_EMPTY )
+                    {
+                        widthB++;
+                        widthA = Integer.MIN_VALUE;
+                    }
 
-        //TODO: Check Cols but can be in different layers
+                    // length
+                    temp = state.at(j, i, k);
+                    if ( temp == player )
+                    {
+                        lengthA++;
+                        lengthB = Integer.MIN_VALUE;
+                    }
+                    else if ( temp != Constants.CELL_EMPTY )
+                    {
+                        lengthB++;
+                        lengthA = Integer.MIN_VALUE;
+                    }
+
+                    // depth
+                    temp = state.at(k, i, j);
+                    if ( temp == player )
+                    {
+                        depthA++;
+                        depthB = Integer.MIN_VALUE;
+                    }
+                    else if ( temp != Constants.CELL_EMPTY )
+                    {
+                        depthB++;
+                        depthA = Integer.MIN_VALUE;
+                    }
+                }
+                sumPA += widthA + lengthA + depthA;
+                sumPB += widthB + lengthB + depthB;
+            }
+
+        }
+
+        // Check diagonals of a single depth
+        for ( int k = 0; k < 3; k++ )
+        {
+            for ( int i = 0; i < GameState.BOARD_SIZE; i++ )
+            {
+                int[] diagSums = calc2dDiagonals(state, player, k, i);
+                sumPA += diagSums[0];
+                sumPB += diagSums[1];
+            }
+        }
         
-        //TODO: Check Horizontal Diags but can be in different layers
+        // Check diagonals of multple layers
+        int[] diagSums = calc3dDiagonals(state, player);
+        sumPA += diagSums[0];
+        sumPB += diagSums[1];
         
-        //TODO: Check Vertical Diags
-        
-        //TODO: Check Depth???
-        
-        return sum;
+        return sumPA - sumPB;
     }
 
     @SuppressWarnings( "unused" )
@@ -188,5 +357,21 @@ public class Player
         }
 
         return v;
+    }
+
+    private int getGameState ( GameState state, int a, int b, int constantDim, int layer )
+    {
+        switch(constantDim)
+        {
+            case 0:
+            return state.at(layer, a, b);
+            case 1:
+            return state.at(a, layer, b);
+            case 2:
+            return state.at(a, b, layer);
+            default:
+            System.err.println("invalid switch entry");
+        }
+        return 0;
     }
 }
