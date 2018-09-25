@@ -224,6 +224,22 @@ public class Player
         int sumPA = 0;
         int sumPB = 0;
 
+        if ( state.isEOG() ) //If the state is end of game then there is no need to calculate values we can output +-inf 
+        {
+            if ( ( player == Constants.CELL_X && state.isXWin() ) || ( player == Constants.CELL_O && state.isOWin() ) ) //Player wins
+            {
+                return Integer.MAX_VALUE;
+            }
+            else if ( !state.isXWin() && !( state.isOWin() ) ) //Draw
+            {
+                return Integer.MIN_VALUE / 4;
+            }
+            else
+            {
+                return Integer.MIN_VALUE;
+            }
+        }
+
         //Check rows, columns, and layers for straight lines
         for ( int k = 0; k < GameState.BOARD_SIZE; k++ )
         {
@@ -303,14 +319,14 @@ public class Player
 
     private int calcScore( int moves )
     {
-        if ( moves == 0 )
-            return moves;
+        if ( moves <= 0 )
+            return 0;
 
         int points = 0;
         // winning move!!
         if ( moves == 4 )
         {
-            points = 1000000;
+            points = 10000000;
         }
         else if ( moves > 0 )
             points = ( int ) Math.pow( 10, moves );
@@ -379,7 +395,7 @@ public class Player
                     break; //alpha prune
             }
         }
-        
+
         if ( depth == MAXDEPTH ) //Allows us to get the best parent state i.e. best next move state
             return bestChildAndVal;
 
