@@ -4,10 +4,8 @@ public class Player
 {
 
     private int myPlayer;
-    private int opponent;
     private final int MAXDEPTH = 2;
-    private int numPreviousMoves = 0;
-
+    //private int numPreviousMoves = 0;
 
     /**
      * Performs a move
@@ -22,7 +20,6 @@ public class Player
         gameState.findPossibleMoves( nextStates );
 
         myPlayer = gameState.getNextPlayer();
-        opponent = (myPlayer == Constants.CELL_X ? Constants.CELL_O : Constants.CELL_X);
 
         if ( nextStates.size() == 0 )
         {
@@ -43,7 +40,7 @@ public class Player
 
         // count the number of moves already played before this one
         // myPlayer and opponent moves counted separately
-        if ( numPreviousMoves == 0 )
+        /*if ( numPreviousMoves == 0 )
         {
             for ( int k = 0; k < GameState.BOARD_SIZE; k++ )
             {
@@ -59,9 +56,9 @@ public class Player
             }
         }
         else
-            numPreviousMoves += 2;
+            numPreviousMoves += 2;*/
 
-/*
+        /*
         if ( gameState.getNextPlayer() == Constants.CELL_X ) // Player A i.e. its the other players turn next
         {
             int v = Integer.MIN_VALUE;
@@ -79,9 +76,9 @@ public class Player
                     v = temp;
                     bestState = state;
                 }
-
+        
                 alpha = Math.max( alpha, v );
-
+        
                 if ( beta <= alpha )
                     break;
             }
@@ -97,29 +94,29 @@ public class Player
                     v = temp;
                     bestState = state;
                 }
-
+        
                 beta = Math.min( beta, v );
-
+        
                 if ( beta <= alpha )
                     break;
             }
         }
-*/
+        */
         StateAndScore temp = alphaBeta( gameState, MAXDEPTH, alpha, beta, myPlayer );
         bestState = temp.gameState;
         return bestState;
     }
 
-    private int[] calc2dDiagonals ( GameState state, int player, int constantDim, int layer )
+    private int[] calc2dDiagonals( GameState state, int player, int constantDim, int layer )
     {
         int[] sums = new int[2];
         int numDiaPAL = 0;
         int numDiaPBL = 0;
         int numDiaPAR = 0;
         int numDiaPBR = 0;
-        for (int j = 0; j < GameState.BOARD_SIZE; j++)
+        for ( int j = 0; j < GameState.BOARD_SIZE; j++ )
         {
-            int temp = getGameState(state, j, j, constantDim, layer);
+            int temp = getGameState( state, j, j, constantDim, layer );
             if ( temp == player )
             {
                 numDiaPAL++;
@@ -131,8 +128,8 @@ public class Player
                 numDiaPAL = Integer.MIN_VALUE;
             }
 
-            temp = getGameState(state, j, (GameState.BOARD_SIZE - 1) - j, constantDim, layer);
-            if (temp == player)
+            temp = getGameState( state, j, ( GameState.BOARD_SIZE - 1 ) - j, constantDim, layer );
+            if ( temp == player )
             {
                 numDiaPAR++;
                 numDiaPBR = Integer.MIN_VALUE;
@@ -143,12 +140,12 @@ public class Player
                 numDiaPAR = Integer.MIN_VALUE;
             }
         }
-        sums[0] = calcScore(numDiaPAL) + calcScore(numDiaPAR);
-        sums[1] = calcScore(numDiaPBL) + calcScore(numDiaPBR);
+        sums[0] = calcScore( numDiaPAL ) + calcScore( numDiaPAR );
+        sums[1] = calcScore( numDiaPBL ) + calcScore( numDiaPBR );
         return sums;
     }
 
-    private int[] calc3dDiagonals ( GameState state, int player )
+    private int[] calc3dDiagonals( GameState state, int player )
     {
         int d1PA = 0;
         int d1PB = 0;
@@ -161,7 +158,7 @@ public class Player
 
         for ( int j = 0; j < GameState.BOARD_SIZE; j++ )
         {
-            int temp = state.at(j, j, j);
+            int temp = state.at( j, j, j );
             if ( temp == player )
             {
                 d1PA++;
@@ -173,7 +170,7 @@ public class Player
                 d1PA = Integer.MIN_VALUE;
             }
 
-            temp = state.at(j, j, (GameState.BOARD_SIZE - 1) - j);
+            temp = state.at( j, j, ( GameState.BOARD_SIZE - 1 ) - j );
             if ( temp == player )
             {
                 d2PA++;
@@ -185,7 +182,7 @@ public class Player
                 d2PA = Integer.MIN_VALUE;
             }
 
-            temp = state.at(j, (GameState.BOARD_SIZE - 1) - j, j);
+            temp = state.at( j, ( GameState.BOARD_SIZE - 1 ) - j, j );
             if ( temp == player )
             {
                 d3PA++;
@@ -197,7 +194,7 @@ public class Player
                 d3PA = Integer.MIN_VALUE;
             }
 
-            temp = state.at(j, (GameState.BOARD_SIZE - 1) - j, (GameState.BOARD_SIZE - 1) - j);
+            temp = state.at( j, ( GameState.BOARD_SIZE - 1 ) - j, ( GameState.BOARD_SIZE - 1 ) - j );
             if ( temp == player )
             {
                 d4PA++;
@@ -210,8 +207,8 @@ public class Player
             }
         }
         int[] sums = new int[2];
-        sums[0] = calcScore(d1PA) + calcScore(d2PA) + calcScore(d3PA) + calcScore(d4PA);
-        sums[1] = calcScore(d1PB) + calcScore(d2PB) + calcScore(d3PB) + calcScore(d4PB);
+        sums[0] = calcScore( d1PA ) + calcScore( d2PA ) + calcScore( d3PA ) + calcScore( d4PA );
+        sums[1] = calcScore( d1PB ) + calcScore( d2PB ) + calcScore( d3PB ) + calcScore( d4PB );
         return sums;
     }
 
@@ -226,11 +223,11 @@ public class Player
     {
         int sumPA = 0;
         int sumPB = 0;
-        
+
         //Check rows, columns, and layers for straight lines
-        for( int k = 0; k < GameState.BOARD_SIZE; k++ )
+        for ( int k = 0; k < GameState.BOARD_SIZE; k++ )
         {
-            for( int i = 0; i < GameState.BOARD_SIZE; i++ )
+            for ( int i = 0; i < GameState.BOARD_SIZE; i++ )
             {
                 int widthA = 0;
                 int widthB = 0;
@@ -238,10 +235,10 @@ public class Player
                 int lengthB = 0;
                 int depthA = 0;
                 int depthB = 0;
-                for( int j = 0; j < GameState.BOARD_SIZE; j++ )
+                for ( int j = 0; j < GameState.BOARD_SIZE; j++ )
                 {
                     // width
-                    int temp = state.at(i, j, k);
+                    int temp = state.at( i, j, k );
                     if ( temp == player )
                     {
                         widthA++;
@@ -254,7 +251,7 @@ public class Player
                     }
 
                     // length
-                    temp = state.at(j, i, k);
+                    temp = state.at( j, i, k );
                     if ( temp == player )
                     {
                         lengthA++;
@@ -267,7 +264,7 @@ public class Player
                     }
 
                     // depth
-                    temp = state.at(k, i, j);
+                    temp = state.at( k, i, j );
                     if ( temp == player )
                     {
                         depthA++;
@@ -279,8 +276,8 @@ public class Player
                         depthA = Integer.MIN_VALUE;
                     }
                 }
-                sumPA += calcScore(widthA) + calcScore(lengthA) + calcScore(depthA);
-                sumPB += calcScore(widthB) + calcScore(lengthB) + calcScore(depthB);
+                sumPA += calcScore( widthA ) + calcScore( lengthA ) + calcScore( depthA );
+                sumPB += calcScore( widthB ) + calcScore( lengthB ) + calcScore( depthB );
             }
 
         }
@@ -290,21 +287,21 @@ public class Player
         {
             for ( int i = 0; i < GameState.BOARD_SIZE; i++ )
             {
-                int[] diagSums = calc2dDiagonals(state, player, k, i);
+                int[] diagSums = calc2dDiagonals( state, player, k, i );
                 sumPA += diagSums[0];
                 sumPB += diagSums[1];
             }
         }
-        
+
         // Check diagonals of multple layers
-        int[] diagSums = calc3dDiagonals(state, player);
+        int[] diagSums = calc3dDiagonals( state, player );
         sumPA += diagSums[0];
         sumPB += diagSums[1];
-        
-        return (sumPA * 2) - sumPB;
+
+        return ( sumPA * 2 ) - sumPB;
     }
 
-    private int calcScore ( int moves )
+    private int calcScore( int moves )
     {
         if ( moves == 0 )
             return moves;
@@ -316,18 +313,17 @@ public class Player
             points = 1000000;
         }
         else if ( moves > 0 )
-            points = (int) Math.pow( moves, 10 );
+            points = ( int ) Math.pow( 10, moves );
 
         return points;
     }
-
 
     private StateAndScore alphaBeta( GameState state, int depth, double alpha, double beta, int player )
     {
         Vector<GameState> nextStates = new Vector<GameState>();
         state.findPossibleMoves( nextStates );
 
-        int other_player = (player == Constants.CELL_X ? Constants.CELL_O : Constants.CELL_X);
+        int other_player = ( player == Constants.CELL_X ? Constants.CELL_O : Constants.CELL_X );
 
         StateAndScore bestChildAndVal = null;
         StateAndScore v = null;
@@ -339,33 +335,33 @@ public class Player
 
             //int temp = eval( state, myPlayer ) - eval( state, opponent );
             //System.err.println(temp);
-            StateAndScore leaf = new StateAndScore( state, eval(state, myPlayer ));
+            StateAndScore leaf = new StateAndScore( state, eval( state, myPlayer ) );
             return leaf;
         }
 
         else if ( player == myPlayer ) //Player A
         {
-            v = new StateAndScore(Integer.MIN_VALUE);
+            v = new StateAndScore( Integer.MIN_VALUE );
             for ( GameState nextState : nextStates )
             {
                 StateAndScore temp = alphaBeta( nextState, depth - 1, alpha, beta, other_player );
                 if ( temp.eval > v.eval )
                 {
                     v = temp;
-                    alpha = Math.max( alpha, v.eval );
                     if ( depth == MAXDEPTH )
                     {
                         bestChildAndVal = new StateAndScore( nextState, temp.eval );
                     }
-                    if ( beta <= alpha )
-                        break; //Beta prune
                 }
+                alpha = Math.max( alpha, v.eval );
+                if ( beta <= alpha )
+                    break; //Beta prune
             }
         }
 
         else //Player B
         {
-            v = new StateAndScore(Integer.MAX_VALUE);
+            v = new StateAndScore( Integer.MAX_VALUE );
             for ( GameState nextState : nextStates )
             {
                 StateAndScore temp = alphaBeta( nextState, depth - 1, alpha, beta, other_player );
@@ -373,34 +369,35 @@ public class Player
                 if ( temp.eval < v.eval )
                 {
                     v = temp;
-                    beta = Math.min( beta, v.eval );
                     if ( depth == MAXDEPTH )
                     {
                         bestChildAndVal = new StateAndScore( nextState, temp.eval );
                     }
-                    if ( beta <= alpha )
-                        break; //alpha prune
                 }
+                beta = Math.min( beta, v.eval );
+                if ( beta <= alpha )
+                    break; //alpha prune
             }
         }
-        if ( depth == MAXDEPTH )
+        
+        if ( depth == MAXDEPTH ) //Allows us to get the best parent state i.e. best next move state
             return bestChildAndVal;
 
         return v;
     }
 
-    private int getGameState ( GameState state, int a, int b, int constantDim, int layer )
+    private int getGameState( GameState state, int a, int b, int constantDim, int layer )
     {
-        switch(constantDim)
+        switch ( constantDim )
         {
             case 0:
-            return state.at(layer, a, b);
+                return state.at( layer, a, b );
             case 1:
-            return state.at(a, layer, b);
+                return state.at( a, layer, b );
             case 2:
-            return state.at(a, b, layer);
+                return state.at( a, b, layer );
             default:
-            System.err.println("invalid switch entry");
+                System.err.println( "invalid switch entry" );
         }
         return 0;
     }
