@@ -4,6 +4,8 @@ public class Player
 {
 
     int myPlayer;
+    int opponent;
+    final int MAXDEPTH = 2;
 
     /**
      * Performs a move
@@ -16,7 +18,8 @@ public class Player
     {
         Vector<GameState> nextStates = new Vector<GameState>();
         gameState.findPossibleMoves( nextStates );
-        myPlayer = gameState.getNextPlayer();
+        myPlayer = (gameState.getNextPlayer() == Constants.CELL_X ? Constants.CELL_O : Constants.CELL_X);
+        opponent = gameState.getNextPlayer();
 
         if ( nextStates.size() == 0 )
         {
@@ -34,8 +37,8 @@ public class Player
         GameState bestState = null;
         int beta = Integer.MAX_VALUE;
         int alpha = Integer.MIN_VALUE;
-        int maxDepth = 3;
 
+/*
         if ( gameState.getNextPlayer() == Constants.CELL_X ) // Player A i.e. its the other players turn next
         {
             int v = Integer.MIN_VALUE;
@@ -47,7 +50,7 @@ public class Player
                 //        bestVal = tempVal;
                 //        bestState = state;
                 //    }
-                int temp = alphaBeta( state, maxDepth, alpha, beta, myPlayer );
+                int temp = alphaBeta( state, MAXDEPTH, alpha, beta, myPlayer );
                 if ( temp > v ) //equiv to Math.max but also gives us the best state
                 {
                     v = temp;
@@ -65,7 +68,7 @@ public class Player
             int v = Integer.MAX_VALUE;
             for ( GameState state : nextStates )
             {
-                int temp = alphaBeta( state, maxDepth, alpha, beta, myPlayer );
+                int temp = alphaBeta( state, MAXDEPTH, alpha, beta, myPlayer );
                 if ( temp < v ) //equiv to Math.min but also gives us the best state
                 {
                     v = temp;
@@ -78,7 +81,9 @@ public class Player
                     break;
             }
         }
-
+*/
+        StateAndScore temp = alphaBeta( gameState, MAXDEPTH, alpha, beta, myPlayer );
+        bestState = temp.gameState;
         return bestState;
     }
 
@@ -313,48 +318,69 @@ public class Player
         }
     }
 
-    private int alphaBeta( GameState state, int depth, int alpha, int beta, int player )
+    private StateAndScore alphaBeta( GameState state, int depth, int alpha, int beta, int player )
     {
         Vector<GameState> nextStates = new Vector<GameState>();
         state.findPossibleMoves( nextStates );
 
-        int v = Integer.MAX_VALUE; // setting V for player B
+        int other_player = (player == Constants.CELL_X ? Constants.CELL_O : Constants.CELL_X);
+
+        StateAndScore bestChildAndVal = null;
+        StateAndScore v = null;
+
+        //int v = Integer.MAX_VALUE; // setting V for player B
 
         if ( nextStates.size() == 0 || depth == 0 ) //terminal state
         {
-            //return eval( state, player );
 
-            int opponent = Constants.CELL_X;
-            if ( myPlayer == Constants.CELL_X )
-                opponent = Constants.CELL_O;
-
-            int temp = eval( state, myPlayer ) - eval( state, opponent );
+            //int temp = eval( state, myPlayer ) - eval( state, opponent );
             //System.err.println(temp);
-            return temp;
+            StateAndScore leaf = new StateAndScore( state, eval(state, myPlayer ));
+            return leaf;
         }
 
-        else if ( player == Constants.CELL_X ) //Player A
+        else if ( player == myPlayer ) //Player A
         {
-            v = Integer.MIN_VALUE;
+            v = new StateAndScore(Integer.MIN_VALUE);
             for ( GameState nextState : nextStates )
             {
-                v = Math.max( v, alphaBeta( nextState, depth - 1, alpha, beta, Constants.CELL_O ) );
-                alpha = Math.max( alpha, v );
-                if ( beta <= alpha )
-                    break; //Beta prune
+                StateAndScore temp = alphaBeta( nextState, depth - 1, alpha, beta, other_player );
+                if ( temp.eval > v.eval )
+                {
+                    v = temp;
+                    alpha = Math.max( alpha, v.eval );
+                    if ( depth == MAXDEPTH )
+                    {
+                        bestChildAndVal = new StateAndScore( nextState, temp.eval );
+                    }
+                    if ( beta <= alpha )
+                        break; //Beta prune
+                }
             }
         }
 
         else //Player B
         {
+            v = new StateAndScore(Integer.MAX_VALUE);
             for ( GameState nextState : nextStates )
             {
-                v = Math.min( v, alphaBeta( nextState, depth - 1, alpha, beta, Constants.CELL_X ) );
-                beta = Math.min( beta, v );
-                if ( beta <= alpha )
-                    break; //alpha prune
+                StateAndScore temp = alphaBeta( nextState, depth - 1, alpha, beta, other_player );
+
+                if ( temp.eval < v.eval )
+                {
+                    v = temp;
+                    beta = Math.min( beta, v.eval );
+                    if ( depth == MAXDEPTH )
+                    {
+                        bestChildAndVal = new StateAndScore( nextState, temp.eval );
+                    }
+                    if ( beta <= alpha )
+                        break; //alpha prune
+                }
             }
         }
+        if ( depth == MAXDEPTH )
+            return bestChildAndVal;
 
         return v;
     }
