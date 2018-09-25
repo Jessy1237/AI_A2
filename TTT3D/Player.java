@@ -145,71 +145,57 @@ public class Player
         return sums;
     }
 
-    private int[] calc3dDiagonals( GameState state, int player )
+    private int[][] calc3dDiagonals( GameState state, int player, int[][] diags, int j )
     {
-        int d1PA = 0;
-        int d1PB = 0;
-        int d2PA = 0;
-        int d2PB = 0;
-        int d3PA = 0;
-        int d3PB = 0;
-        int d4PA = 0;
-        int d4PB = 0;
-
-        for ( int j = 0; j < GameState.BOARD_SIZE; j++ )
+        int temp = state.at( j, j, j );
+        if ( temp == player )
         {
-            int temp = state.at( j, j, j );
-            if ( temp == player )
-            {
-                d1PA++;
-                d1PB = Integer.MIN_VALUE;
-            }
-            else if ( temp != Constants.CELL_EMPTY )
-            {
-                d1PB++;
-                d1PA = Integer.MIN_VALUE;
-            }
-
-            temp = state.at( j, j, ( GameState.BOARD_SIZE - 1 ) - j );
-            if ( temp == player )
-            {
-                d2PA++;
-                d2PB = Integer.MIN_VALUE;
-            }
-            else if ( temp != Constants.CELL_EMPTY )
-            {
-                d2PB++;
-                d2PA = Integer.MIN_VALUE;
-            }
-
-            temp = state.at( j, ( GameState.BOARD_SIZE - 1 ) - j, j );
-            if ( temp == player )
-            {
-                d3PA++;
-                d3PB = Integer.MIN_VALUE;
-            }
-            else if ( temp != Constants.CELL_EMPTY )
-            {
-                d3PB++;
-                d3PA = Integer.MIN_VALUE;
-            }
-
-            temp = state.at( j, ( GameState.BOARD_SIZE - 1 ) - j, ( GameState.BOARD_SIZE - 1 ) - j );
-            if ( temp == player )
-            {
-                d4PA++;
-                d4PB = Integer.MIN_VALUE;
-            }
-            else if ( temp != Constants.CELL_EMPTY )
-            {
-                d4PB++;
-                d4PA = Integer.MIN_VALUE;
-            }
+            diags[0][0]++;
+            diags[1][0] = Integer.MIN_VALUE;
         }
-        int[] sums = new int[2];
-        sums[0] = calcScore( d1PA ) + calcScore( d2PA ) + calcScore( d3PA ) + calcScore( d4PA );
-        sums[1] = calcScore( d1PB ) + calcScore( d2PB ) + calcScore( d3PB ) + calcScore( d4PB );
-        return sums;
+        else if ( temp != Constants.CELL_EMPTY )
+        {
+            diags[1][0]++;
+            diags[0][0] = Integer.MIN_VALUE;
+        }
+
+        temp = state.at( j, j, ( GameState.BOARD_SIZE - 1 ) - j );
+        if ( temp == player )
+        {
+            diags[0][1]++;
+            diags[1][1] = Integer.MIN_VALUE;
+        }
+        else if ( temp != Constants.CELL_EMPTY )
+        {
+            diags[1][1]++;
+            diags[0][1] = Integer.MIN_VALUE;
+        }
+
+        temp = state.at( j, ( GameState.BOARD_SIZE - 1 ) - j, j );
+        if ( temp == player )
+        {
+            diags[0][2]++;
+            diags[1][2] = Integer.MIN_VALUE;
+        }
+        else if ( temp != Constants.CELL_EMPTY )
+        {
+            diags[1][2]++;
+            diags[1][2] = Integer.MIN_VALUE;
+        }
+
+        temp = state.at( j, ( GameState.BOARD_SIZE - 1 ) - j, ( GameState.BOARD_SIZE - 1 ) - j );
+        if ( temp == player )
+        {
+            diags[0][3]++;
+            diags[1][3] = Integer.MIN_VALUE;
+        }
+        else if ( temp != Constants.CELL_EMPTY )
+        {
+            diags[1][3]++;
+            diags[0][3] = Integer.MIN_VALUE;
+        }
+
+        return diags;
     }
 
     /**
@@ -223,6 +209,7 @@ public class Player
     {
         int sumPA = 0;
         int sumPB = 0;
+        int diag3d[][] = new int[2][4]; //used to calculate the values of the 3d diagonals
 
         if ( state.isEOG() ) //If the state is end of game then there is no need to calculate values we can output +-inf 
         {
@@ -243,6 +230,9 @@ public class Player
         //Check rows, columns, and layers for straight lines
         for ( int k = 0; k < GameState.BOARD_SIZE; k++ )
         {
+            //Checking of the 3d diagonals
+            calc3dDiagonals( state, player, diag3d, k );
+
             for ( int i = 0; i < GameState.BOARD_SIZE; i++ )
             {
                 int widthA = 0;
@@ -309,12 +299,11 @@ public class Player
             }
         }
 
-        // Check diagonals of multple layers
-        int[] diagSums = calc3dDiagonals( state, player );
-        sumPA += diagSums[0];
-        sumPB += diagSums[1];
+        //Calc 3D diags score     
+        sumPA += calcScore( diag3d[0][0] ) + calcScore( diag3d[0][1] ) + calcScore( diag3d[0][2] ) + calcScore( diag3d[0][3] );
+        sumPB += calcScore( diag3d[1][0] ) + calcScore( diag3d[1][1] ) + calcScore( diag3d[1][2] ) + calcScore( diag3d[1][3] );
 
-        return ( sumPA * 2 ) - sumPB;
+        return sumPA - sumPB;
     }
 
     private int calcScore( int moves )
