@@ -110,7 +110,7 @@ public class Player
         return bestState;
     }
 
-    private int[] calc2dDiagonals ( GameState state, int player, int constantDim, int layer, int depth )
+    private int[] calc2dDiagonals ( GameState state, int player, int constantDim, int layer )
     {
         int[] sums = new int[2];
         int numDiaPAL = 0;
@@ -148,7 +148,7 @@ public class Player
         return sums;
     }
 
-    private int[] calc3dDiagonals ( GameState state, int player, int depth )
+    private int[] calc3dDiagonals ( GameState state, int player )
     {
         int d1PA = 0;
         int d1PB = 0;
@@ -222,7 +222,7 @@ public class Player
      * @param player The current player
      * @return The heuristic value for the given state and player
      */
-    private int eval( GameState state, int player, int depth )
+    private int eval( GameState state, int player )
     {
         int sumPA = 0;
         int sumPB = 0;
@@ -290,14 +290,14 @@ public class Player
         {
             for ( int i = 0; i < GameState.BOARD_SIZE; i++ )
             {
-                int[] diagSums = calc2dDiagonals(state, player, k, i, depth);
+                int[] diagSums = calc2dDiagonals(state, player, k, i);
                 sumPA += diagSums[0];
                 sumPB += diagSums[1];
             }
         }
         
         // Check diagonals of multple layers
-        int[] diagSums = calc3dDiagonals(state, player, depth);
+        int[] diagSums = calc3dDiagonals(state, player);
         sumPA += diagSums[0];
         sumPB += diagSums[1];
         
@@ -339,7 +339,7 @@ public class Player
 
             //int temp = eval( state, myPlayer ) - eval( state, opponent );
             //System.err.println(temp);
-            StateAndScore leaf = new StateAndScore( state, eval(state, myPlayer, depth ));
+            StateAndScore leaf = new StateAndScore( state, eval(state, myPlayer ));
             return leaf;
         }
 
