@@ -215,11 +215,9 @@ public class Player
             {
                 index = 0;
                 if ( 0 != ( currentPiece & Constants.CELL_KING ) )
-                    // king piece
-                    index = 2;
+                    index = 2; // king piece
                 if ( 0 != ( currentPiece & Constants.CELL_WHITE ) )
-                    // white piece
-                    index++;
+                    index++; // white piece
 
                 key ^= piece[i][index];
             }
