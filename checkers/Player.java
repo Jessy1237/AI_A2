@@ -3,7 +3,7 @@ import java.util.*;
 public class Player {
 
     private int myPlayer;
-    private final int MAXDEPTH = 2;
+    private final int MAXDEPTH = 12;
     private final int NUMTYPES = 4;
     private HashMap<Long, State> zobrist = new HashMap<>();
     private long[][] piece = new long[GameState.NUMBER_OF_SQUARES][NUMTYPES];
@@ -13,13 +13,11 @@ public class Player {
         int vmax;
         int depth;
         long key;
-        GameState gameState;
-        public State(int depth, int valueMin, int valueMax, long key, GameState gameState) {
+        public State(int depth, int valueMin, int valueMax, long key) {
             this.depth = depth;
             this.vmin = valueMin;
             this.vmax = valueMax;
             this.key = key;
-            this.gameState = gameState;
         }
     }
 
@@ -78,7 +76,19 @@ public class Player {
      */
     private int eval( GameState state, int player )
     {
-        return 0;
+        int numWhite = 0;
+        int numRed = 0;
+        for ( int i = 0; i < state.NUMBER_OF_SQUARES; i++)
+        {
+            int temp = state.get(i);
+            if ( temp == Constants.CELL_RED )
+                numRed++;
+            else if ( temp == Constants.CELL_WHITE )
+                numWhite++;
+        }
+        if ( player == Constants.CELL_RED )
+            return numRed - numWhite;
+        return numWhite - numRed;
     }
 
     private StateAndScore alphaBeta( GameState state, int depth, double alpha, double beta, int player )
@@ -93,8 +103,8 @@ public class Player {
         if ( zobrist.containsKey(key) && zobrist.get(key).key == key )
         {
             if ( player == myPlayer )
-                return new StateAndScore( zobrist.get(key).gameState, zobrist.get(key).vmax);
-            return new StateAndScore( zobrist.get(key).gameState, zobrist.get(key).vmin);
+                return new StateAndScore( state, zobrist.get(key).vmax);
+            return new StateAndScore( state, zobrist.get(key).vmin);
         }
 
         StateAndScore bestChildAndVal = null;
@@ -131,7 +141,7 @@ public class Player {
                 if ( beta <= alpha )
                     break; //Beta prune
             }
-            zobrist.put(key, new State( MAXDEPTH-depth, min, v.eval, key, bestChildAndVal.gameState));
+            zobrist.put(key, new State( MAXDEPTH-depth, min, v.eval, key ));
         }
 
         else //Player B
@@ -155,7 +165,7 @@ public class Player {
                 if ( beta <= alpha )
                     break; //alpha prune
             }
-            zobrist.put(key, new State( MAXDEPTH-depth, v.eval, max, key, bestChildAndVal.gameState));
+            zobrist.put(key, new State( MAXDEPTH-depth, v.eval, max, key ));
         }
 
         if ( depth == MAXDEPTH ) //Allows us to get the best parent state i.e. best next move state
