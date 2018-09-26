@@ -117,7 +117,7 @@ public class Player
         return numWhite - numRed;
     }
 
-    private StateAndScore alphaBeta( GameState state, int depth, double alpha, double beta, int player )
+    private StateAndScore alphaBeta( GameState state, int depth, int alpha, int beta, int player )
     {
         Vector<GameState> nextStates = new Vector<GameState>();
         state.findPossibleMoves( nextStates );
