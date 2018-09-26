@@ -1,19 +1,25 @@
-import java.util.*;
+import java.util.HashMap;
+import java.util.Random;
+import java.util.Vector;
 
-public class Player {
+public class Player
+{
 
     private int myPlayer;
-    private final int MAXDEPTH = 12;
+    private final int MAXDEPTH = 13;
     private final int NUMTYPES = 4;
     private HashMap<Long, State> zobrist = new HashMap<>();
     private long[][] piece = new long[GameState.NUMBER_OF_SQUARES][NUMTYPES];
 
-    public class State {
+    public class State
+    {
         int vmin;
         int vmax;
         int depth;
         long key;
-        public State(int depth, int valueMin, int valueMax, long key) {
+
+        public State( int depth, int valueMin, int valueMax, long key )
+        {
             this.depth = depth;
             this.vmin = valueMin;
             this.vmax = valueMax;
@@ -24,27 +30,26 @@ public class Player {
     /**
      * Performs a move
      *
-     * @param pState
-     *            the current state of the board
-     * @param pDue
-     *            time before which we must have returned
+     * @param pState the current state of the board
+     * @param pDue time before which we must have returned
      * @return the next state the board is in after our move
      */
-    public GameState play(final GameState pState, final Deadline pDue) {
+    public GameState play( final GameState pState, final Deadline pDue )
+    {
 
         Vector<GameState> lNextStates = new Vector<GameState>();
-        pState.findPossibleMoves(lNextStates);
+        pState.findPossibleMoves( lNextStates );
 
         myPlayer = pState.getNextPlayer();
 
-        if (lNextStates.size() == 0) {
+        if ( lNextStates.size() == 0 )
+        {
             // Must play "pass" move if there are no other moves possible.
-            return new GameState(pState, new Move());
+            return new GameState( pState, new Move() );
         }
 
         /**
-         * Here you should write your algorithms to get the best next move, i.e.
-         * the best next state. This skeleton returns a random move instead.
+         * Here you should write your algorithms to get the best next move, i.e. the best next state. This skeleton returns a random move instead.
          */
         //Random random = new Random();
         //return lNextStates.elementAt(random.nextInt(lNextStates.size()));
@@ -78,13 +83,34 @@ public class Player {
     {
         int numWhite = 0;
         int numRed = 0;
-        for ( int i = 0; i < state.NUMBER_OF_SQUARES; i++)
+
+        if ( state.isEOG() )
         {
-            int temp = state.get(i);
+            if ( ( player == Constants.CELL_RED && state.isRedWin() ) || ( player == Constants.CELL_WHITE && state.isWhiteWin() ) )
+            {
+                return Integer.MAX_VALUE;
+            }
+            else if ( state.isDraw() )
+            {
+                return 0;
+            }
+            else
+            {
+                return Integer.MIN_VALUE;
+            }
+        }
+
+        for ( int i = 0; i < GameState.NUMBER_OF_SQUARES; i++ )
+        {
+            int temp = state.get( i );
             if ( temp == Constants.CELL_RED )
                 numRed++;
             else if ( temp == Constants.CELL_WHITE )
                 numWhite++;
+            else if ( temp == ( Constants.CELL_RED | Constants.CELL_KING ) )
+                numRed += 100;
+            else if ( temp == ( Constants.CELL_WHITE | Constants.CELL_KING ) )
+                numWhite += 100;
         }
         if ( player == Constants.CELL_RED )
             return numRed - numWhite;
@@ -98,13 +124,13 @@ public class Player {
 
         int other_player = ( player == Constants.CELL_RED ? Constants.CELL_WHITE : Constants.CELL_RED );
 
-        long key = createKey(state);
+        long key = createKey( state );
         // this calculation has already been done
-        if ( zobrist.containsKey(key) && zobrist.get(key).key == key )
+        if ( zobrist.containsKey( key ) && zobrist.get( key ).key == key )
         {
             if ( player == myPlayer )
-                return new StateAndScore( state, zobrist.get(key).vmax);
-            return new StateAndScore( state, zobrist.get(key).vmin);
+                return new StateAndScore( state, zobrist.get( key ).vmax );
+            return new StateAndScore( state, zobrist.get( key ).vmin );
         }
 
         StateAndScore bestChildAndVal = null;
@@ -141,7 +167,7 @@ public class Player {
                 if ( beta <= alpha )
                     break; //Beta prune
             }
-            zobrist.put(key, new State( MAXDEPTH-depth, min, v.eval, key ));
+            zobrist.put( key, new State( MAXDEPTH - depth, min, v.eval, key ) );
         }
 
         else //Player B
@@ -165,7 +191,7 @@ public class Player {
                 if ( beta <= alpha )
                     break; //alpha prune
             }
-            zobrist.put(key, new State( MAXDEPTH-depth, v.eval, max, key ));
+            zobrist.put( key, new State( MAXDEPTH - depth, v.eval, max, key ) );
         }
 
         if ( depth == MAXDEPTH ) //Allows us to get the best parent state i.e. best next move state
@@ -174,30 +200,31 @@ public class Player {
         return v;
     }
 
-    public long createKey(GameState board) {
+    public long createKey( GameState board )
+    {
         long key = 0;
         int currentPiece;
         int index;
-        
+
         // basic red = 0, basic white = 1, red king = 2, and white king = 3
-        
+
         for ( int i = 0; i < GameState.NUMBER_OF_SQUARES; i++ )
-        {   
-            currentPiece = board.get(i);  
+        {
+            currentPiece = board.get( i );
             if ( currentPiece != Constants.CELL_EMPTY )
-            { 
+            {
                 index = 0;
-                if ( 0 != (currentPiece & Constants.CELL_KING) )
+                if ( 0 != ( currentPiece & Constants.CELL_KING ) )
                     // king piece
                     index = 2;
-                if ( 0 != (currentPiece & Constants.CELL_WHITE) )
+                if ( 0 != ( currentPiece & Constants.CELL_WHITE ) )
                     // white piece
                     index++;
-               
+
                 key ^= piece[i][index];
             }
         }
-       
+
         return key;
     }
 }
