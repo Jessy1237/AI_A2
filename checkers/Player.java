@@ -11,22 +11,6 @@ public class Player
     private HashMap<Long, State> zobrist = new HashMap<>();
     private long[][] piece = new long[GameState.NUMBER_OF_SQUARES][NUMTYPES];
 
-    public class State
-    {
-        int vmin;
-        int vmax;
-        int depth;
-        long key;
-
-        public State( int depth, int valueMin, int valueMax, long key )
-        {
-            this.depth = depth;
-            this.vmin = valueMin;
-            this.vmax = valueMax;
-            this.key = key;
-        }
-    }
-
     /**
      * Performs a move
      *
@@ -83,6 +67,9 @@ public class Player
     {
         int numWhite = 0;
         int numRed = 0;
+        // board positions for starting player sides
+        final int REDSIDE = 11;
+        final int WHITESIDE = 20;
 
         if ( state.isEOG() )
         {
@@ -103,20 +90,50 @@ public class Player
         for ( int i = 0; i < GameState.NUMBER_OF_SQUARES; i++ )
         {
             int temp = state.get( i );
-            if ( temp == Constants.CELL_RED )
+            int remainder = i % NUMTYPES;
+            if ( temp == Constants.CELL_RED ) {
                 numRed++;
-            else if ( temp == Constants.CELL_WHITE )
+                // give more points to pieces on the opponent's side of the board
+                if ( i >= WHITESIDE )
+                    numRed += 5;
+                // corner pieces cannot get jumped
+                if ( remainder == 0 || remainder == 3 )
+                    numRed += 2;
+            }
+            else if ( temp == Constants.CELL_WHITE ) {
                 numWhite++;
+                if ( i <= REDSIDE )
+                    numWhite += 5;
+                if ( remainder == 0 || remainder == 3 )
+                    numWhite += 2;
+            }
             else if ( temp == ( Constants.CELL_RED | Constants.CELL_KING ) )
+            {
                 numRed += 100;
+                if ( i >= WHITESIDE )
+                    numRed += 5;
+                if ( remainder == 0 || remainder == 3 )
+                    numRed += 2;
+            }
             else if ( temp == ( Constants.CELL_WHITE | Constants.CELL_KING ) )
+            {
                 numWhite += 100;
+                if ( i <= REDSIDE )
+                    numWhite += 5;
+                if ( remainder == 0 || remainder == 3 )
+                    numWhite += 2;
+            }
         }
         if ( player == Constants.CELL_RED )
             return numRed - numWhite;
         return numWhite - numRed;
     }
 
+    /**
+     * recursive method that creates and evaluates the game tree up to a max depth
+     * Adapted from course pseudo code
+     * @return the best GameState and associated eval value we found for the next move
+     */
     private StateAndScore alphaBeta( GameState state, int depth, int alpha, int beta, int player )
     {
         Vector<GameState> nextStates = new Vector<GameState>();
@@ -136,13 +153,8 @@ public class Player
         StateAndScore bestChildAndVal = null;
         StateAndScore v = null;
 
-        //int v = Integer.MAX_VALUE; // setting V for player B
-
         if ( nextStates.size() == 0 || depth == 0 ) //terminal state
         {
-
-            //int temp = eval( state, myPlayer ) - eval( state, opponent );
-            //System.err.println(temp);
             StateAndScore leaf = new StateAndScore( state, eval( state, myPlayer ) );
             return leaf;
         }
@@ -200,6 +212,11 @@ public class Player
         return v;
     }
 
+    /**
+     * method that creates a unique hash key for the current board state
+     * @param board the current GameState
+     * @return key a long representing the current board state
+     */
     public long createKey( GameState board )
     {
         long key = 0;
@@ -224,5 +241,24 @@ public class Player
         }
 
         return key;
+    }
+
+    /**
+     * Class for the value in the zobrist hash map
+     */
+    public class State
+    {
+        int vmin;
+        int vmax;
+        int depth;
+        long key;
+
+        public State( int depth, int valueMin, int valueMax, long key )
+        {
+            this.depth = depth;
+            this.vmin = valueMin;
+            this.vmax = valueMax;
+            this.key = key;
+        }
     }
 }
