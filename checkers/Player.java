@@ -1,15 +1,11 @@
-import java.util.HashMap;
-import java.util.Random;
-import java.util.Vector;
+import java.util.*;
 
 public class Player
 {
 
     private int myPlayer;
-    private final int MAXDEPTH = 13;
+    private final int MAXDEPTH = 9;
     private final int NUMTYPES = 4;
-    private HashMap<Long, State> zobrist = new HashMap<>();
-    private long[][] piece = new long[GameState.NUMBER_OF_SQUARES][NUMTYPES];
 
     /**
      * Performs a move
@@ -41,15 +37,6 @@ public class Player
         GameState bestState = null;
         int beta = Integer.MAX_VALUE;
         int alpha = Integer.MIN_VALUE;
-
-        Random rand = new Random();
-        for ( int i = 0; i < GameState.NUMBER_OF_SQUARES; i++ )
-        {
-            for ( int j = 0; j < NUMTYPES; j++ )
-            {
-                piece[i][j] = rand.nextLong();
-            }
-        }
 
         StateAndScore temp = alphaBeta( pState, MAXDEPTH, alpha, beta, myPlayer );
         bestState = temp.gameState;
@@ -103,7 +90,7 @@ public class Player
                 if ( 0 != (temp & Constants.CELL_KING) )
                     numRed += 20;
             }
-            else // White player
+            else if ( 0 != (temp & Constants.CELL_WHITE) )
             {
                 numWhite++;
                 if ( i <= REDSIDE )
@@ -117,8 +104,6 @@ public class Player
         int diff = numWhite - numRed;
         if ( player == Constants.CELL_RED )
             diff = numRed - numWhite;
-
-        diff *= 100;
 
         // todo: implement some look aheads and favor almost kings
 
@@ -137,15 +122,6 @@ public class Player
 
         int other_player = ( player == Constants.CELL_RED ? Constants.CELL_WHITE : Constants.CELL_RED );
 
-        long key = createKey( state );
-        // this calculation has already been done
-        if ( zobrist.containsKey( key ) && zobrist.get( key ).key == key )
-        {
-            if ( player == myPlayer )
-                return new StateAndScore( state, zobrist.get( key ).vmax );
-            return new StateAndScore( state, zobrist.get( key ).vmin );
-        }
-
         StateAndScore bestChildAndVal = null;
         StateAndScore v = null;
 
@@ -159,7 +135,8 @@ public class Player
         {
             v = new StateAndScore( Integer.MIN_VALUE );
             int min = Integer.MAX_VALUE;
-            for ( GameState nextState : nextStates )
+            Vector<GameState> orderedStates = orderStates(nextStates,true);
+            for ( GameState nextState : orderedStates )
             {
                 StateAndScore temp = alphaBeta( nextState, depth - 1, alpha, beta, other_player );
                 if ( temp.eval > v.eval )
@@ -175,14 +152,14 @@ public class Player
                 if ( beta <= alpha )
                     break; //Beta prune
             }
-            zobrist.put( key, new State( MAXDEPTH - depth, min, v.eval, key ) );
         }
 
         else //Player B
         {
             v = new StateAndScore( Integer.MAX_VALUE );
             int max = Integer.MIN_VALUE;
-            for ( GameState nextState : nextStates )
+            Vector<GameState> orderedStates = orderStates(nextStates,false);
+            for ( GameState nextState : orderedStates )
             {
                 StateAndScore temp = alphaBeta( nextState, depth - 1, alpha, beta, other_player );
 
@@ -199,7 +176,6 @@ public class Player
                 if ( beta <= alpha )
                     break; //alpha prune
             }
-            zobrist.put( key, new State( MAXDEPTH - depth, v.eval, max, key ) );
         }
 
         if ( depth == MAXDEPTH ) //Allows us to get the best parent state i.e. best next move state
@@ -209,52 +185,23 @@ public class Player
     }
 
     /**
-     * method that creates a unique hash key for the current board state
-     * @param board the current GameState
-     * @return key a long representing the current board state
+     * Method orders the child states of this GameState in ascending or descendinig order
+     * @param nextStates the child states to be sorted
+     * @return the child states in order according to descending T/F
      */
-    public long createKey( GameState board )
+    public Vector<GameState> orderStates( Vector<GameState> nextStates,  boolean descending )
     {
-        long key = 0;
-        int currentPiece;
-        int index;
-
-        // basic red = 0, basic white = 1, red king = 2, and white king = 3
-
-        for ( int i = 0; i < GameState.NUMBER_OF_SQUARES; i++ )
+        Collections.sort( nextStates, new Comparator<GameState>()
         {
-            currentPiece = board.get( i );
-            if ( currentPiece != Constants.CELL_EMPTY )
-            {
-                index = 0;
-                if ( 0 != ( currentPiece & Constants.CELL_KING ) )
-                    index = 2; // king piece
-                if ( 0 != ( currentPiece & Constants.CELL_WHITE ) )
-                    index++; // white piece
-
-                key ^= piece[i][index];
+            @Override
+            public int compare( GameState s1, GameState s2 ) {
+                return Integer.compare(eval(s1, myPlayer), eval(s2, myPlayer));
             }
-        }
-
-        return key;
-    }
-
-    /**
-     * Class for the value in the zobrist hash map
-     */
-    public class State
-    {
-        int vmin;
-        int vmax;
-        int depth;
-        long key;
-
-        public State( int depth, int valueMin, int valueMax, long key )
+        });
+        if ( descending )
         {
-            this.depth = depth;
-            this.vmin = valueMin;
-            this.vmax = valueMax;
-            this.key = key;
+            Collections.reverse(nextStates);
         }
+        return nextStates;
     }
 }
