@@ -1,4 +1,6 @@
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Vector;
 
 public class Player
 {
@@ -78,7 +80,7 @@ public class Player
         {
             int temp = state.get( i );
             int remainder = i % NUMTYPES;
-            if ( 0 != (temp & Constants.CELL_RED) )
+            if ( 0 != ( temp & Constants.CELL_RED ) )
             {
                 numRed++;
                 // give more points to pieces on the opponent's side of the board
@@ -87,17 +89,17 @@ public class Player
                 // corner pieces cannot get jumped
                 if ( remainder == 0 || remainder == 3 )
                     numRed += 2;
-                if ( 0 != (temp & Constants.CELL_KING) )
+                if ( 0 != ( temp & Constants.CELL_KING ) )
                     numRed += 20;
             }
-            else if ( 0 != (temp & Constants.CELL_WHITE) )
+            else if ( 0 != ( temp & Constants.CELL_WHITE ) )
             {
                 numWhite++;
                 if ( i <= REDSIDE )
                     numWhite += 5;
                 if ( remainder == 0 || remainder == 3 )
                     numWhite += 2;
-                if ( 0 != (temp & Constants.CELL_KING) )
+                if ( 0 != ( temp & Constants.CELL_KING ) )
                     numWhite += 20;
             }
         }
@@ -111,8 +113,8 @@ public class Player
     }
 
     /**
-     * recursive method that creates and evaluates the game tree up to a max depth
-     * Adapted from course pseudo code
+     * recursive method that creates and evaluates the game tree up to a max depth Adapted from course pseudo code
+     * 
      * @return the best GameState and associated eval value we found for the next move
      */
     private StateAndScore alphaBeta( GameState state, int depth, int alpha, int beta, int player )
@@ -135,7 +137,7 @@ public class Player
         {
             v = new StateAndScore( Integer.MIN_VALUE );
             int min = Integer.MAX_VALUE;
-            Vector<GameState> orderedStates = orderStates(nextStates,true);
+            Vector<GameState> orderedStates = orderStates( nextStates, true );
             for ( GameState nextState : orderedStates )
             {
                 StateAndScore temp = alphaBeta( nextState, depth - 1, alpha, beta, other_player );
@@ -158,7 +160,7 @@ public class Player
         {
             v = new StateAndScore( Integer.MAX_VALUE );
             int max = Integer.MIN_VALUE;
-            Vector<GameState> orderedStates = orderStates(nextStates,false);
+            Vector<GameState> orderedStates = orderStates( nextStates, false );
             for ( GameState nextState : orderedStates )
             {
                 StateAndScore temp = alphaBeta( nextState, depth - 1, alpha, beta, other_player );
@@ -186,21 +188,22 @@ public class Player
 
     /**
      * Method orders the child states of this GameState in ascending or descendinig order
+     * 
      * @param nextStates the child states to be sorted
      * @return the child states in order according to descending T/F
      */
-    public Vector<GameState> orderStates( Vector<GameState> nextStates,  boolean descending )
+    public Vector<GameState> orderStates( Vector<GameState> nextStates, boolean descending )
     {
-        Collections.sort( nextStates, new Comparator<GameState>()
-        {
+        Collections.sort( nextStates, new Comparator<GameState>() {
             @Override
-            public int compare( GameState s1, GameState s2 ) {
-                return Integer.compare(eval(s1, myPlayer), eval(s2, myPlayer));
+            public int compare( GameState s1, GameState s2 )
+            {
+                return Integer.compare( eval( s1, myPlayer ), eval( s2, myPlayer ) );
             }
-        });
+        } );
         if ( descending )
         {
-            Collections.reverse(nextStates);
+            Collections.reverse( nextStates );
         }
         return nextStates;
     }
