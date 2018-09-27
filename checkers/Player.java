@@ -91,7 +91,8 @@ public class Player
         {
             int temp = state.get( i );
             int remainder = i % NUMTYPES;
-            if ( temp == Constants.CELL_RED ) {
+            if ( 0 != (temp & Constants.CELL_RED) )
+            {
                 numRed++;
                 // give more points to pieces on the opponent's side of the board
                 if ( i >= WHITESIDE )
@@ -99,34 +100,29 @@ public class Player
                 // corner pieces cannot get jumped
                 if ( remainder == 0 || remainder == 3 )
                     numRed += 2;
+                if ( 0 != (temp & Constants.CELL_KING) )
+                    numRed += 20;
             }
-            else if ( temp == Constants.CELL_WHITE ) {
+            else // White player
+            {
                 numWhite++;
                 if ( i <= REDSIDE )
                     numWhite += 5;
                 if ( remainder == 0 || remainder == 3 )
                     numWhite += 2;
-            }
-            else if ( temp == ( Constants.CELL_RED | Constants.CELL_KING ) )
-            {
-                numRed += 100;
-                if ( i >= WHITESIDE )
-                    numRed += 5;
-                if ( remainder == 0 || remainder == 3 )
-                    numRed += 2;
-            }
-            else if ( temp == ( Constants.CELL_WHITE | Constants.CELL_KING ) )
-            {
-                numWhite += 100;
-                if ( i <= REDSIDE )
-                    numWhite += 5;
-                if ( remainder == 0 || remainder == 3 )
-                    numWhite += 2;
+                if ( 0 != (temp & Constants.CELL_KING) )
+                    numWhite += 20;
             }
         }
+        int diff = numWhite - numRed;
         if ( player == Constants.CELL_RED )
-            return numRed - numWhite;
-        return numWhite - numRed;
+            diff = numRed - numWhite;
+
+        diff *= 100;
+
+        // todo: implement some look aheads and favor almost kings
+
+        return diff;
     }
 
     /**
